@@ -13,6 +13,7 @@ import (
 	"github.com/crazy-max/diun/v4/internal/msg"
 	"github.com/crazy-max/diun/v4/internal/notif/notifier"
 	"github.com/crazy-max/diun/v4/pkg/utl"
+	"github.com/pkg/errors"
 )
 
 // Client represents an active elasticsearch notification object
@@ -113,8 +114,19 @@ func (c *Client) Send(entry model.NotifEntry) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("elasticsearch returned status %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusCreated {
+		var errBody struct {
+			Status int `json:"status"`
+			Error  struct {
+				Type   string `json:"type"`
+				Reason string `json:"reason"`
+			} `json:"error"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&errBody); err != nil {
+			return errors.Wrapf(err, "cannot decode JSON error response for HTTP %d %s status",
+				resp.StatusCode, http.StatusText(resp.StatusCode))
+		}
+		return errors.Errorf("%d %s: %s", errBody.Status, errBody.Error.Type, errBody.Error.Reason)
 	}
 
 	return nil
