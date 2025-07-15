@@ -2,11 +2,11 @@ package elasticsearch
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/crazy-max/diun/v4/internal/model"
 	"github.com/crazy-max/diun/v4/internal/msg"
@@ -17,9 +17,8 @@ import (
 // Client represents an active elasticsearch notification object
 type Client struct {
 	*notifier.Notifier
-	cfg        *model.NotifElasticsearch
-	meta       model.Meta
-	httpClient *http.Client
+	cfg  *model.NotifElasticsearch
+	meta model.Meta
 }
 
 // New creates a new elasticsearch notification instance
@@ -81,18 +80,17 @@ func (c *Client) Send(entry model.NotifEntry) error {
 	// Create Elasticsearch URL
 	url := fmt.Sprintf("%s://%s:%d/%s/_doc", c.cfg.Scheme, c.cfg.Host, c.cfg.Port, c.cfg.Index)
 
-	if c.httpClient == nil {
-		c.httpClient = &http.Client{
-			Timeout: 30 * time.Second,
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: c.cfg.InsecureSkipVerify,
-				},
+	hc := http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: c.cfg.InsecureSkipVerify,
 			},
-		}
+		},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), *c.cfg.Timeout)
+	defer cancel()
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -105,7 +103,7 @@ func (c *Client) Send(entry model.NotifEntry) error {
 		req.SetBasicAuth(username, password)
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := hc.Do(req)
 	if err != nil {
 		return err
 	}

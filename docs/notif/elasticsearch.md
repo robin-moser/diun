@@ -15,6 +15,7 @@ Send notifications to your Elasticsearch cluster as structured documents.
         password: password
         client: diun
         index: diun-notifications
+        timeout: 10s
         insecureSkipVerify: false
     ```
 
@@ -29,6 +30,7 @@ Send notifications to your Elasticsearch cluster as structured documents.
 | `passwordFile`       |                      | Use content of secret file as password if `password` is not defined |
 | `client`[^1]         | `diun`               | Client name to identify the source of notifications                 |
 | `index`[^1]          | `diun-notifications` | Elasticsearch index name where notifications will be stored         |
+| `timeout`[^1]        | `10s`                | Timeout specifies a time limit for the request to be made           |
 | `insecureSkipVerify` | `false`              | Skip TLS certificate verification                                   |
 
 !!! abstract "Environment variables"
@@ -41,6 +43,7 @@ Send notifications to your Elasticsearch cluster as structured documents.
     * `DIUN_NOTIF_ELASTICSEARCH_PASSWORDFILE`
     * `DIUN_NOTIF_ELASTICSEARCH_CLIENT`
     * `DIUN_NOTIF_ELASTICSEARCH_INDEX`
+    * `DIUN_NOTIF_ELASTICSEARCH_TIMEOUT`
     * `DIUN_NOTIF_ELASTICSEARCH_INSECURESKIPVERIFY`
 
 ## Document Structure

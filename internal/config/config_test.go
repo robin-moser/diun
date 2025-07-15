@@ -94,6 +94,7 @@ func TestLoadFile(t *testing.T) {
 						Password:           "password",
 						Client:             "diun",
 						Index:              "diun-notifications",
+						Timeout:            utl.NewDuration(10 * time.Second),
 						InsecureSkipVerify: false,
 					},
 					Gotify: &model.NotifGotify{
