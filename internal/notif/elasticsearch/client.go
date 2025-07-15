@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/crazy-max/diun/v4/internal/model"
 	"github.com/crazy-max/diun/v4/internal/msg"
@@ -67,6 +68,9 @@ func (c *Client) Send(entry model.NotifEntry) error {
 	if err := json.Unmarshal(body, &doc); err != nil {
 		return err
 	}
+
+	// Add the current time
+	doc["@timestamp"] = time.Now().Format(time.RFC3339Nano)
 
 	// Add the client field from the configuration
 	doc["client"] = c.cfg.Client
